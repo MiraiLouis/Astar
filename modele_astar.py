@@ -50,6 +50,8 @@ def modele(maze, start, end):
                         temp=lidar(maze, pos)
                         map[temp == 0] = 0
                     chem=astar(map.copy(), start, end)
+                    if chem is None:
+                        break
     return astar(map, start, end)
 
 ###
@@ -232,13 +234,17 @@ def lidar(maze, pos):
     return(map)
 
 
-maze = [[0, 0, 1, 0],
-        [0, 0, 1, 0],
-        [0, 1, 1, 0],
-        [0, 0, 0, 0]]
+maze = [
+    [0, 1, 0, 0, 0, 1],
+    [0, 1, 0, 1, 0, 0],
+    [0, 0, 0, 1, 0, 1],
+    [1, 1, 0, 0, 0, 0],
+    [0, 0, 0, 1, 1, 0],
+    [0, 1, 0, 0, 0, 0],
+]
 
 
 start = (0, 0)
-end = (2, 1)
+end = (5, 5)
 
 print(modele(maze,start,end))
