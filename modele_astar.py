@@ -1,5 +1,5 @@
+import heapq
 import numpy as np
-import copy
 
 class Node:
 
@@ -14,6 +14,9 @@ class Node:
     def __eq__(self, other):
         return self.position == other.position
 
+    def __lt__(self, other):
+        return (self.f, id(self)) < (other.f, id(other))
+
 
 def chemin(current_node,maze):
     chemin = []
@@ -27,32 +30,26 @@ def chemin(current_node,maze):
 
 
 def modele(maze, start, end):
+    maze = np.array(maze)
     if maze[end[0]][end[1]] ==1:
         return ("Destination impossible")
     else:
-        lignes,colonnes=np.shape(maze)
         map=lidar(maze, start)
         map[end[0]][end[1]]=0
         pos=start
         chem = None
         while pos!=end and chem is None:
-            maze1=copy.deepcopy(map)
-            chem=astar(maze1, start, end)
+            chem=astar(map.copy(), start, end)
             while chem is None:
-                maze2=copy.deepcopy(map)
-                chem=astar2(maze2, pos, end)
+                chem=astar2(map.copy(), pos, end)
                 test=(0, 0)
                 while chem !=test:
                     test=chem
                     for coord in chem:
                         pos=coord
                         temp=lidar(maze, pos)
-                        for i in range(lignes):
-                            for j in range(colonnes):
-                                if temp[i][j]==0:
-                                    map[i][j]=temp[i][j]
-                maze2=copy.deepcopy(map)
-                chem=astar(maze2, start, end)
+                        map[temp == 0] = 0
+                    chem=astar(map.copy(), start, end)
     return astar(map, start, end)
 
 ###
@@ -72,26 +69,23 @@ def astar2(maze, start, end):
 
         # Initialisation des listes
         open_list = []
-        closed_list = []
-        open_list.append(start_node)
+        closed_set = set()
+        heapq.heappush(open_list, start_node)
 
 
         # Boucle jusqu'à trouver end
-        while len(open_list) > 0:
+        while open_list:
 
             # Node actuel
-            current_node = open_list[0]
-            current_index = 0
-            for index, item in enumerate(open_list):
-                if item.f < current_node.f:
-                    current_node = item
-                    current_index = index
+            current_node = heapq.heappop(open_list)
+
+            # Ignorer si déjà traité
+            if current_node.position in closed_set:
+                continue
 
             # Mise à jour des listes
-            open_list.pop(current_index)
-            closed_list.append(current_node)
-            if current_node.position not in L:
-                L.append(current_node.position)
+            closed_set.add(current_node.position)
+            L.append(current_node.position)
             maze[current_node.position[0]][current_node.position[1]] = 1
 
             # Resultat
@@ -123,23 +117,17 @@ def astar2(maze, start, end):
             # Boucle dans children
             for child in children:
 
-                # Child est dans closed list
-                for closed_child in closed_list:
-                    if child == closed_child:
-                        continue
+                # Child est dans closed set
+                if child.position in closed_set:
+                    continue
 
                 # Creation des f,g et h
                 child.g = current_node.g + 1
                 child.h = ((child.position[0] - end_node.position[0]) ** 2) + ((child.position[1] - end_node.position[1]) ** 2)
                 child.f = child.g + child.h
 
-                # Child est déjà dans open list
-                for open_node in open_list:
-                    if child == open_node and child.g > open_node.g:
-                        continue
-
                 # Append
-                open_list.append(child)
+                heapq.heappush(open_list, child)
 
         return L
 
@@ -161,26 +149,23 @@ def astar(maze, start, end):
 
         # Initialisation des listes
         open_list = []
-        closed_list = []
-        open_list.append(start_node)
+        closed_set = set()
+        heapq.heappush(open_list, start_node)
 
 
         # Boucle jusqu'à trouver end
-        while len(open_list) > 0:
+        while open_list:
 
             # Node actuel
-            current_node = open_list[0]
-            current_index = 0
-            for index, item in enumerate(open_list):
-                if item.f < current_node.f:
-                    current_node = item
-                    current_index = index
+            current_node = heapq.heappop(open_list)
+
+            # Ignorer si déjà traité
+            if current_node.position in closed_set:
+                continue
 
             # Mise à jour des listes
-            open_list.pop(current_index)
-            closed_list.append(current_node)
+            closed_set.add(current_node.position)
             L.append(current_node.position)
-            #print(L)
             maze[current_node.position[0]][current_node.position[1]] = 1
 
             # Resultat
@@ -212,23 +197,17 @@ def astar(maze, start, end):
             # Boucle dans children
             for child in children:
 
-                # Child est dans closed list
-                for closed_child in closed_list:
-                    if child == closed_child:
-                        continue
+                # Child est dans closed set
+                if child.position in closed_set:
+                    continue
 
                 # Creation des f,g et h
                 child.g = current_node.g + 1
                 child.h = ((child.position[0] - end_node.position[0]) ** 2) + ((child.position[1] - end_node.position[1]) ** 2)
                 child.f = child.g + child.h
 
-                # Child est déjà dans open list
-                for open_node in open_list:
-                    if child == open_node and child.g > open_node.g:
-                        continue
-
                 # Append
-                open_list.append(child)
+                heapq.heappush(open_list, child)
 
 
 ###
@@ -250,8 +229,6 @@ def lidar(maze, pos):
                 map[x2][y2] = 0
                 x2=x2+k[0]
                 y2=y2+k[1]
-                if 0<=x2<=lignes-1 and 0<=y2<=colonnes-1 and maze[x2][y2] == 0:
-                    map[x2][y2] = 0
     return(map)
 
 
