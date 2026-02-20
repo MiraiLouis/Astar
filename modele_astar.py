@@ -43,15 +43,21 @@ def modele(maze, start, end):
             while chem is None:
                 chem=astar2(map.copy(), pos, end)
                 test=(0, 0)
+                progress=False
                 while chem !=test:
                     test=chem
                     for coord in chem:
                         pos=coord
                         temp=lidar(maze, pos)
+                        prev_sum=map.sum()
                         map[temp == 0] = 0
+                        if map.sum() < prev_sum:
+                            progress=True
                     chem=astar(map.copy(), start, end)
                     if chem is None:
                         break
+                if chem is None and not progress:
+                    return "Chemin impossible"
     return astar(map, start, end)
 
 ###
@@ -235,12 +241,12 @@ def lidar(maze, pos):
 
 
 maze = [
-    [0, 1, 0, 0, 0, 1],
-    [0, 1, 0, 1, 0, 0],
-    [0, 0, 0, 1, 0, 1],
-    [1, 1, 0, 0, 0, 0],
-    [0, 0, 0, 1, 1, 0],
-    [0, 1, 0, 0, 0, 0],
+    [0, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1],
+    [1, 1, 0, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 0],
+    [1, 1, 1, 1, 1, 0],
 ]
 
 
